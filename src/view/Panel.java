@@ -1,6 +1,5 @@
 package view;
 
-import algorithm.PointsAlgorithm;
 import constants.Constants;
 import model.Point;
 import raster.RasterBufferedImage;

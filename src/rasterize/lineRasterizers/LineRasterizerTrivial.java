@@ -13,8 +13,10 @@ public class LineRasterizerTrivial extends LineRasterizer {
     }
 
     @Override
-    public void rasterize(int x1, int y1, int x2, int y2, boolean isPatternFill) {
-        super.rasterize(x1, y1, x2, y2, isPatternFill);
+    public void rasterize(int x1, int y1, int x2, int y2, int color) {
+        super.rasterize(x1, y1, x2, y2, color);
+
+        this.color = color;
 
         // Stejný bod, vykreslíme pouze bod => degenerovaná úsečka
         if (x1 == x2 && y1 == y2) {

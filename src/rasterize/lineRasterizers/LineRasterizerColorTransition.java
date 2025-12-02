@@ -16,8 +16,8 @@ public class LineRasterizerColorTransition extends LineRasterizer {
     }
 
     @Override
-    public void rasterize(int x1, int y1, int x2, int y2, boolean isPatternFill) {
-        super.rasterize(x1, y1, x2, y2, false);
+    public void rasterize(int x1, int y1, int x2, int y2) {
+        super.rasterize(x1, y1, x2, y2);
 
         Color c1 = Color.red;
         Color c2 = Color.green;

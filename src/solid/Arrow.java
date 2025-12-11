@@ -13,5 +13,6 @@ public class Arrow extends Solid {
 
         // ib
         this.addIndices(0,1,2,3,3,4,4,2);
+        this.name = "Šipka";
     }
 }

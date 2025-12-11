@@ -33,4 +33,8 @@ public class Mat4Transl extends Mat4Identity {
 		this(v.getX(), v.getY(), v.getZ());
 	}
 
+	public Mat4Transl(final Point3D p) {
+		this(p.getX(), p.getY(), p.getZ());
+	}
+
 }

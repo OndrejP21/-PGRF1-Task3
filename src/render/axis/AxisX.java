@@ -1,6 +1,7 @@
 package render.axis;
 
 import solid.Axis;
+import transforms.Col;
 import transforms.Point3D;
 
 public class AxisX extends Axis {
@@ -10,6 +11,6 @@ public class AxisX extends Axis {
         this.vb.add(new Point3D(0, 0, 0));
         this.vb.add(new Point3D(1, 0, 0));
 
-        this.color = 0xff0000;
+        this.color = new Col(0xff0000);
     }
 }

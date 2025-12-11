@@ -1,13 +1,10 @@
 package view;
 
-import constants.Constants;
-import model.Point;
 import raster.RasterBufferedImage;
 
 import javax.swing.*;
 import java.awt.*;
 
-import java.util.*;
 
 public class Panel extends JPanel {
 
@@ -35,37 +32,6 @@ public class Panel extends JPanel {
 
     public void setDrawStringInfo(String[] drawStringInfo) {
         this.drawStringInfo = drawStringInfo;
-    }
-
-    /** Nakreslní většího bodu */
-    public void drawBigPoint(model.Point p, int radius) {
-        Deque<Point> dq = new ArrayDeque<>();
-        dq.add(p);
-
-        // Pole již navštívených
-        boolean[][] visited = new boolean[getWidth()][getHeight()];
-
-        while (!dq.isEmpty()) {
-            Point cur = dq.pop();
-            int x = cur.getX();
-            int y = cur.getY();
-
-            if (x < 0 || x >= getWidth() || y < 0 || y >= getHeight() || visited[x][y]) continue;
-            visited[x][y] = true;
-
-            int dx = x - p.getX();
-            int dy = y - p.getY();
-
-            // Jsme mimo hranice radiusu
-            if (dx*dx + dy*dy > radius*radius) continue;
-
-            raster.setPixel(x, y, Constants.RED_COLOR);
-
-            dq.push(new Point(x - 1, y));
-            dq.push(new Point(x + 1, y));
-            dq.push(new Point(x, y - 1));
-            dq.push(new Point(x, y + 1));
-        }
     }
 
     public RasterBufferedImage getRaster() {

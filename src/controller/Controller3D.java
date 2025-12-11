@@ -10,8 +10,12 @@ import render.axis.AxisY;
 import render.axis.AxisZ;
 import solid.Arrow;
 import solid.Axis;
+import solid.Curve;
+import solid.Solid;
 import transforms.*;
+import view.ControlsWindow;
 import view.Panel;
+import view.TransformControlsPanel;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -21,34 +25,28 @@ public class Controller3D {
     private final Panel panel;
     private final RasterBufferedImage raster;
     private LineRasterizer lineRasterizer;
-    private Renderer renderer;
-    private Camera camera;
-    private Mat4 proj;
-    private Arrow arrow;
+    private SolidController solidController;
     private List<Axis> axis;
-    private boolean animate;
+    private Curve curve;
+    private ControlsWindow controlsWindow;
 
     public Controller3D(Panel panel) {
         this.panel = panel;
         this.raster = panel.getRaster();
         this.lineRasterizer = new LineRasterizerTrivial(this.raster);
+        this.solidController = new SolidController(panel, this.lineRasterizer);
 
-        // defaultně kameru kouká ve směru osy x
-        this.camera = new Camera().withPosition(new Vec3D(0.5,-1.5,1)).withAzimuth(Math.toRadians(90)).withZenith(Math.toRadians(-25)).withFirstPerson(true);
-        this.proj = new Mat4PerspRH(Math.toRadians(90), this.panel.getHeight() / (double) this.panel.getWidth(), 0.1, 100);
-
-        this.renderer = new Renderer(this.lineRasterizer, this.panel.getWidth(), this.panel.getHeight(), this.camera.getViewMatrix(), this.proj);
+        this.controlsWindow = new ControlsWindow();
 
         this.axis = new ArrayList<>();
         this.axis.add(new AxisX());
         this.axis.add(new AxisY());
         this.axis.add(new AxisZ());
 
-        this.arrow = new Arrow();
-
-        this.animate = false;
+        this.curve = new Curve(10);
 
         initListeners();
+        drawScrene();
     }
 
     private void initListeners() {
@@ -56,38 +54,59 @@ public class Controller3D {
             @Override
             public void keyPressed(KeyEvent e) {
                 super.keyPressed(e);
+                Solid selectedSolid = solidController.getSelectedSolid();
+                TransformControlsPanel controls = controlsWindow.getControlsPanel();
 
                 switch (e.getKeyCode()) {
                     case KeyEvent.VK_LEFT:
-                        arrow.mulSolid(new Mat4Transl(-0.5, 0, 0));
+                        selectedSolid.mulSolid(new Mat4Transl(-controls.getTranslateStep(), 0, 0));
                         break;
 
                     case KeyEvent.VK_RIGHT:
-                        arrow.mulSolid(new Mat4Transl(0.5, 0, 0));
+                        selectedSolid.mulSolid(new Mat4Transl(controls.getTranslateStep(), 0, 0));
                             break;
+                    case KeyEvent.VK_UP:
+                        selectedSolid.mulSolid(new Mat4Transl(0, controls.getTranslateStep(), 0));
+                        break;
+
+                    case KeyEvent.VK_DOWN:
+                        selectedSolid.mulSolid(new Mat4Transl(0, -controls.getTranslateStep(), 0));
+                        break;
 
                     case KeyEvent.VK_R:
-                        arrow.rotateSolid(new Point3D(0.25,0,0));
+                        selectedSolid.rotateSolid(controls.getAngleDegrees());
                         break;
 
-                    case KeyEvent.VK_W:
-                        camera = camera.forward(0.5);
-                        break;
-
-                    case KeyEvent.VK_A:
-                        camera = camera.left(0.5);
-                        break;
-
-                    case KeyEvent.VK_S:
-                        camera = camera.backward(0.5);
-                        break;
-
-                    case KeyEvent.VK_D:
-                        camera = camera.right(0.5);
+                    case KeyEvent.VK_X:
+                        selectedSolid.mulSolid(new Mat4Scale(controls.getScaleX(), controls.getScaleY(), controls.getScaleZ()));
                         break;
 
                     case KeyEvent.VK_P:
-                        animate = !animate;
+                        solidController.changeProjectionType();
+                        break;
+
+                    case KeyEvent.VK_SPACE:
+                        solidController.changeSelectedIndex();
+                        break;
+
+                    case KeyEvent.VK_W:
+                        solidController.forwardCamera(0.5);
+                        break;
+
+                    case KeyEvent.VK_A:
+                        solidController.leftCamera(0.5);
+                        break;
+
+                    case KeyEvent.VK_S:
+                        solidController.backwardCamera(0.5);
+                        break;
+
+                    case KeyEvent.VK_D:
+                        solidController.rightCamera(0.5);
+                        break;
+
+                    case KeyEvent.VK_E:
+                        controlsWindow.setVisible(!controlsWindow.isVisible());
                         break;
                 }
 
@@ -99,14 +118,17 @@ public class Controller3D {
     private void drawScrene() {
         panel.getRaster().clear();
 
-        this.renderer.setViewMat(this.camera.getViewMatrix());
-
         // Dodatečné stringové informace k vykreslení
-        panel.setDrawStringInfo(new String[]{"Info"});
+        panel.setDrawStringInfo(new String[]{"Info", "Zvolený útvar: " + this.solidController.getSelectedSolid().getName(), "Typ projekce: " + this.solidController.getProjectionType()});
 
-        this.renderer.renderSolid(this.arrow);
+        this.solidController.updateRenderer();
+
         for (Axis axis : this.axis)
-            this.renderer.renderSolid(axis);
+            this.solidController.renderSolid(axis);
+
+        this.solidController.renderSolid(this.curve);
+
+        this.solidController.renderAllSolids();
 
         panel.repaint();
     }

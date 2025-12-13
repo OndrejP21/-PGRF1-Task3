@@ -16,8 +16,6 @@ public class Window extends JFrame {
         add(panel);
         pack();
 
-        add(new TransformControlsPanel());
-
         panel.setFocusable(true);
         panel.grabFocus();
     }

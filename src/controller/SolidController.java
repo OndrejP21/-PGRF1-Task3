@@ -7,6 +7,8 @@ import render.data.ProjectionType;
 import render.data.RotateType;
 import render.data.SurfaceType;
 import solid.*;
+import solid.curve.ParametricCircle;
+import solid.curve.ParametricCurve;
 import solid.surface.SurfaceSolid;
 import surface.ComputeSurface;
 import surface.SphericalSurface;
@@ -21,7 +23,9 @@ public class SolidController {
     private LineRasterizer lineRasterizer;
     private List<Solid> solids;
     private Camera camera;
-    /** Aktuálně vybraný index Solidu, který upravujeme */
+    /**
+     * Aktuálně vybraný index Solidu, který upravujeme
+     */
     private int selectedIndex;
     private ProjectionType projectionType;
     private RotateType rotateType;
@@ -40,12 +44,12 @@ public class SolidController {
         this.rotateType = RotateType.ROTATE_Z;
 
         // defaultně kameru kouká ve směru osy x
-        this.camera = new Camera().withPosition(new Vec3D(0.5,-1.5,1)).withAzimuth(Math.toRadians(90)).withZenith(Math.toRadians(-25)).withFirstPerson(true);
+        this.camera = new Camera().withPosition(new Vec3D(0.5, -1.5, 1)).withAzimuth(Math.toRadians(90)).withZenith(Math.toRadians(-25)).withFirstPerson(true);
         this.projPersp = new Mat4PerspRH(Math.toRadians(90), this.panel.getHeight() / (double) this.panel.getWidth(), 0.1, 100);
 
         double aspect = panel.getWidth() / (double) panel.getHeight(); // 4:3
         double viewHeight = 2;
-        double viewWidth  = viewHeight * aspect;
+        double viewWidth = viewHeight * aspect;
 
         this.projParalel = new Mat4OrthoRH(viewWidth, viewHeight, 0.1, 200);
 
@@ -56,12 +60,17 @@ public class SolidController {
         this.solids.add(new Tetrahedron());
         this.solids.add(new StarCylinder());
 
+        ParametricCircle circle = new ParametricCircle(0.4, 0.4, 0, 0.3);
+        this.solids.add(new ParametricCurve("Parametrická kružnice", new Col(0xffff00), circle, 0, 2 * Math.PI, 100));
+
         this.sphericalSurface = new SphericalSurface(new Point3D(0.25, 0.25, 0.25), 0.25);
     }
 
-    /** Metoda, která vytvoří surface, může být buď pomocí bicubic nebo pomocí sphercalSurface
+    /**
+     * Metoda, která vytvoří surface, může být buď pomocí bicubic nebo pomocí sphercalSurface
      * pro sférickou bude očekáván pouze jeden bod v poli
-     * pro bukubiku více bodů */
+     * pro bukubiku více bodů
+     */
     public void createSurface(CubicType type, Point3D[] points, SurfaceType surfaceType) {
         ComputeSurface surface;
         String name;
@@ -81,27 +90,37 @@ public class SolidController {
         this.solids.add(sphereSolid);
     }
 
-    /** Vyrenderuje všechny aktuální solidy */
+    /**
+     * Vyrenderuje všechny aktuální solidy
+     */
     public void renderAllSolids() {
         this.renderer.renderSolid(this.solids);
     }
 
-    /** Metoda pro možnost dorenderování speciálních solidů z controlleru 3D */
+    /**
+     * Metoda pro možnost dorenderování speciálních solidů z controlleru 3D
+     */
     public void renderSolid(Solid solid) {
         this.renderer.renderSolid(solid);
     }
 
-    /** Řekneme, že chceme nastavit novou pohledovou matici */
+    /**
+     * Řekneme, že chceme nastavit novou pohledovou matici
+     */
     public void updateRenderer() {
         this.renderer.setViewMat(this.camera.getViewMatrix());
     }
 
-    /** Metoda, která zajistí výběr nového Solidu */
+    /**
+     * Metoda, která zajistí výběr nového Solidu
+     */
     public void changeSelectedIndex() {
         this.selectedIndex = (this.selectedIndex + 1) % this.solids.size();
     }
 
-    /** Vrátí aktuálně zvolený Solid */
+    /**
+     * Vrátí aktuálně zvolený Solid
+     */
     public Solid getSelectedSolid() {
         return this.solids.get(this.selectedIndex);
     }
@@ -135,10 +154,17 @@ public class SolidController {
         this.camera = this.camera.right(d);
     }
 
-    public void addAzimuth(double d) { this.camera = camera.addAzimuth(d); }
-    public void addZenith(double d)  { this.camera = camera.addZenith(d);  }
+    public void addAzimuth(double d) {
+        this.camera = camera.addAzimuth(d);
+    }
 
-    /** Vytvoříme nový list, aby nebylo možné zasahovat do původního zvenku */
+    public void addZenith(double d) {
+        this.camera = camera.addZenith(d);
+    }
+
+    /**
+     * Vytvoříme nový list, aby nebylo možné zasahovat do původního zvenku
+     */
     public List<Solid> getSolids() {
         return new ArrayList<>(solids);
     }
@@ -149,5 +175,10 @@ public class SolidController {
 
     public void setRotateType(RotateType rotateType) {
         this.rotateType = rotateType;
+    }
+
+    public void resizeViewport(int width, int height, LineRasterizer newLineRasterizer) {
+        this.lineRasterizer = newLineRasterizer;
+        this.renderer = new Renderer(this.lineRasterizer, width, height, this.camera.getViewMatrix(), this.getProjMat());
     }
 }

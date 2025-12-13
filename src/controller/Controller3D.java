@@ -22,7 +22,7 @@ import java.util.*;
 
 public class Controller3D {
     private final Panel panel;
-    private final RasterBufferedImage raster;
+    private RasterBufferedImage raster;
     private LineRasterizer lineRasterizer;
     private SolidController solidController;
     private List<Axis> axis;
@@ -48,6 +48,7 @@ public class Controller3D {
         this.axis.add(new AxisZ());
 
         initListeners();
+        initResizeListener();
         drawScene();
 
         this.loop = new AnimationLoop(this::drawScene, 15);
@@ -69,7 +70,7 @@ public class Controller3D {
 
                     case KeyEvent.VK_RIGHT:
                         selectedSolid.mulSolid(new Mat4Transl(controls.getTranslateStep(), 0, 0));
-                            break;
+                        break;
                     case KeyEvent.VK_UP:
                         selectedSolid.mulSolid(new Mat4Transl(0, controls.getTranslateStep(), 0));
                         break;
@@ -92,7 +93,7 @@ public class Controller3D {
                         break;
                     case KeyEvent.VK_Q:
                         if (!animationController.isAnimated(selectedSolid))
-                            animationController.setAnimation(selectedSolid,  loop.getRotateAnimation(solidController.getRotateType()));
+                            animationController.setAnimation(selectedSolid, loop.getRotateAnimation(solidController.getRotateType()));
                         else
                             animationController.clearAnimation(selectedSolid);
                         break;
@@ -146,13 +147,15 @@ public class Controller3D {
         });
 
         panel.addMouseListener(new MouseAdapter() {
-            @Override public void mousePressed(MouseEvent e) {
+            @Override
+            public void mousePressed(MouseEvent e) {
                 lastDrag = new Point(e.getX(), e.getY());
             }
         });
 
         panel.addMouseMotionListener(new MouseMotionAdapter() {
-            @Override public void mouseDragged(MouseEvent e) {
+            @Override
+            public void mouseDragged(MouseEvent e) {
                 Point p = new Point(e.getX(), e.getY());
                 if (lastDrag == null) {
                     lastDrag = p;
@@ -172,13 +175,32 @@ public class Controller3D {
         });
     }
 
-    /** Metoda pro vytvoření křivky uvnitř Solidu */
+    private void initResizeListener() {
+        panel.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                int w = panel.getWidth();
+                int h = panel.getHeight();
+                panel.resizeRaster(w, h);
+                raster = panel.getRaster();
+                lineRasterizer = new LineRasterizerTrivial(raster);
+                solidController.resizeViewport(w, h, lineRasterizer);
+                drawScene();
+            }
+        });
+    }
+
+    /**
+     * Metoda pro vytvoření křivky uvnitř Solidu
+     */
     private void createCurve(Solid solid, CubicType type, Integer n) {
         solid.generateCurve(n, type);
         this.drawScene();
     }
 
-    /** Metoda pro vytvoření surfacu */
+    /**
+     * Metoda pro vytvoření surfacu
+     */
     public void createSurface(CubicType type, Point3D[] points, SurfaceType surfaceType) {
         this.solidController.createSurface(type, points, surfaceType);
         this.drawScene();

@@ -1,6 +1,7 @@
 package controller;
 
 
+import animation.AnimationLoop;
 import model.Point;
 import raster.RasterBufferedImage;
 import rasterize.lineRasterizers.LineRasterizer;
@@ -9,11 +10,10 @@ import render.axis.AxisX;
 import render.axis.AxisY;
 import render.axis.AxisZ;
 import render.data.CubicType;
+import render.data.RotateType;
 import render.data.SurfaceType;
 import solid.Axis;
 import solid.Solid;
-import solid.surface.SurfaceSolid;
-import surface.ComputeSurface;
 import transforms.*;
 import view.*;
 
@@ -30,6 +30,7 @@ public class Controller3D {
     private CurveWindow curveWindow;
     private BicubicWindow bicubicWindow;
     private Point lastDrag;
+    private AnimationLoop loop;
 
     public Controller3D(Panel panel) {
         this.panel = panel;
@@ -48,6 +49,8 @@ public class Controller3D {
 
         initListeners();
         drawScene();
+
+        this.loop = new AnimationLoop(this::drawScene, 15);
     }
 
     private void initListeners() {
@@ -57,6 +60,7 @@ public class Controller3D {
                 super.keyPressed(e);
                 Solid selectedSolid = solidController.getSelectedSolid();
                 TransformControlsPanel controls = controlsWindow.getControlsPanel();
+                AnimationController animationController = loop.getController();
 
                 switch (e.getKeyCode()) {
                     case KeyEvent.VK_LEFT:
@@ -74,8 +78,26 @@ public class Controller3D {
                         selectedSolid.mulSolid(new Mat4Transl(0, -controls.getTranslateStep(), 0));
                         break;
 
+                    case KeyEvent.VK_1:
+                        solidController.setRotateType(RotateType.ROTATE_X);
+                        break;
+                    case KeyEvent.VK_2:
+                        solidController.setRotateType(RotateType.ROTATE_Y);
+                        break;
+                    case KeyEvent.VK_3:
+                        solidController.setRotateType(RotateType.ROTATE_Z);
+                        break;
                     case KeyEvent.VK_R:
-                        selectedSolid.rotateSolid(controls.getAngleDegrees());
+                        selectedSolid.rotateSolid(controls.getAngleDegrees(), solidController.getRotateType());
+                        break;
+                    case KeyEvent.VK_Q:
+                        if (!animationController.isAnimated(selectedSolid))
+                            animationController.setAnimation(selectedSolid,  loop.getRotateAnimation(solidController.getRotateType()));
+                        else
+                            animationController.clearAnimation(selectedSolid);
+                        break;
+                    case KeyEvent.VK_T:
+                        animationController.clearAll();
                         break;
 
                     case KeyEvent.VK_X:
@@ -166,7 +188,7 @@ public class Controller3D {
         panel.getRaster().clear();
 
         // Dodatečné stringové informace k vykreslení
-        panel.setDrawStringInfo(new String[]{"Info", "Zvolený útvar: " + this.solidController.getSelectedSolid().getName(), "Typ projekce: " + this.solidController.getProjectionType()});
+        panel.setDrawStringInfo(new String[]{"Zvolený útvar: " + this.solidController.getSelectedSolid().getName(), "Typ projekce: " + this.solidController.getProjectionType(), "Rotace: " + this.solidController.getRotateType()});
 
         this.solidController.updateRenderer();
 

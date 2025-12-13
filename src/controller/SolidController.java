@@ -4,6 +4,7 @@ import rasterize.lineRasterizers.LineRasterizer;
 import render.Renderer;
 import render.data.CubicType;
 import render.data.ProjectionType;
+import render.data.RotateType;
 import render.data.SurfaceType;
 import solid.*;
 import solid.surface.SurfaceSolid;
@@ -23,6 +24,7 @@ public class SolidController {
     /** Aktuálně vybraný index Solidu, který upravujeme */
     private int selectedIndex;
     private ProjectionType projectionType;
+    private RotateType rotateType;
     private Mat4 projPersp;
     private Mat4 projParalel;
     private SphericalSurface sphericalSurface;
@@ -35,6 +37,7 @@ public class SolidController {
         this.solids = new ArrayList<>();
         this.lineRasterizer = lineRasterizer;
         this.projectionType = ProjectionType.Perspective;
+        this.rotateType = RotateType.ROTATE_Z;
 
         // defaultně kameru kouká ve směru osy x
         this.camera = new Camera().withPosition(new Vec3D(0.5,-1.5,1)).withAzimuth(Math.toRadians(90)).withZenith(Math.toRadians(-25)).withFirstPerson(true);
@@ -88,11 +91,6 @@ public class SolidController {
         this.renderer.renderSolid(solid);
     }
 
-    /** Metoda pro možnost dorenderování speciálních solidů z controlleru 3D */
-    public void renderSolid(List<Solid> solids) {
-        this.renderer.renderSolid(solids);
-    }
-
     /** Řekneme, že chceme nastavit novou pohledovou matici */
     public void updateRenderer() {
         this.renderer.setViewMat(this.camera.getViewMatrix());
@@ -143,5 +141,13 @@ public class SolidController {
     /** Vytvoříme nový list, aby nebylo možné zasahovat do původního zvenku */
     public List<Solid> getSolids() {
         return new ArrayList<>(solids);
+    }
+
+    public RotateType getRotateType() {
+        return rotateType;
+    }
+
+    public void setRotateType(RotateType rotateType) {
+        this.rotateType = rotateType;
     }
 }

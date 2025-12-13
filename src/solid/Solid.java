@@ -1,6 +1,7 @@
 package solid;
 
 import render.data.CubicType;
+import render.data.RotateType;
 import solid.curve.Curve;
 import transforms.*;
 
@@ -63,13 +64,16 @@ public class Solid {
             this.curveSolidInside.get().scaleSolid(vec);
     }
 
-    /** Posune tvar do počátku a zrotuje o úhel*/
-    public void rotateSolid(double angleDeg) {
-        this.mulWithCenterPosition(new Mat4RotZ(Math.toRadians(angleDeg)));
+    /** Posune tvar do počátku a zrotuje o úhel v ose Z*/
+    public void rotateSolid(double angleDeg, RotateType rotateType) {
+        double radiansAngle = Math.toRadians(angleDeg);
+
+        Mat4 rotateMat = rotateType == RotateType.ROTATE_X ? new Mat4RotX(radiansAngle) : rotateType == RotateType.ROTATE_Y ? new Mat4RotY(radiansAngle) : new Mat4RotZ(radiansAngle);
+        this.mulWithCenterPosition(rotateMat);
 
         // Pokud existuje křivka uvnitř, orotujeme i tu
         if (this.hasCurveSolidInside())
-            this.curveSolidInside.get().rotateSolid(angleDeg);
+            this.curveSolidInside.get().rotateSolid(angleDeg, rotateType);
     }
 
     public String getName() {

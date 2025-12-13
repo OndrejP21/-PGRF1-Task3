@@ -2,8 +2,13 @@ package controller;
 
 import rasterize.lineRasterizers.LineRasterizer;
 import render.Renderer;
+import render.data.CubicType;
 import render.data.ProjectionType;
+import render.data.SurfaceType;
 import solid.*;
+import solid.surface.SurfaceSolid;
+import surface.ComputeSurface;
+import surface.SphericalSurface;
 import transforms.*;
 import view.Panel;
 
@@ -20,6 +25,9 @@ public class SolidController {
     private ProjectionType projectionType;
     private Mat4 projPersp;
     private Mat4 projParalel;
+    private SphericalSurface sphericalSurface;
+    private int bicubicSurfacesCount;
+    private int sphericalSurfacesCount;
 
     public SolidController(Panel panel, LineRasterizer lineRasterizer) {
         this.selectedIndex = 0;
@@ -44,6 +52,30 @@ public class SolidController {
         this.solids.add(new Cylinder(16));
         this.solids.add(new Tetrahedron());
         this.solids.add(new StarCylinder());
+
+        this.sphericalSurface = new SphericalSurface(new Point3D(0.25, 0.25, 0.25), 0.25);
+    }
+
+    /** Metoda, která vytvoří surface, může být buď pomocí bicubic nebo pomocí sphercalSurface
+     * pro sférickou bude očekáván pouze jeden bod v poli
+     * pro bukubiku více bodů */
+    public void createSurface(CubicType type, Point3D[] points, SurfaceType surfaceType) {
+        ComputeSurface surface;
+        String name;
+        // bikubika
+        if (surfaceType == SurfaceType.BICUBIC) {
+            surface = new Bicubic(type.getBaseMat(), points);
+            this.bicubicSurfacesCount++;
+            name = "Bikubická plocha (" + type + ") " + this.bicubicSurfacesCount;
+        } else {
+            // sférické
+            surface = this.sphericalSurface;
+            this.sphericalSurfacesCount++;
+            name = "Sférická plocha " + this.sphericalSurfacesCount;
+        }
+
+        SurfaceSolid sphereSolid = new SurfaceSolid(surface, 24, 12, name);
+        this.solids.add(sphereSolid);
     }
 
     /** Vyrenderuje všechny aktuální solidy */

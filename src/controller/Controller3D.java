@@ -12,10 +12,7 @@ import render.data.CubicType;
 import solid.Axis;
 import solid.Solid;
 import transforms.*;
-import view.ControlsWindow;
-import view.CurveWindow;
-import view.Panel;
-import view.TransformControlsPanel;
+import view.*;
 
 import java.awt.event.*;
 import java.util.*;
@@ -28,6 +25,7 @@ public class Controller3D {
     private List<Axis> axis;
     private ControlsWindow controlsWindow;
     private CurveWindow curveWindow;
+    private BicubicWindow bicubicWindow;
     private Point lastDrag;
 
     public Controller3D(Panel panel) {
@@ -38,6 +36,7 @@ public class Controller3D {
 
         this.controlsWindow = new ControlsWindow();
         this.curveWindow = new CurveWindow(this.solidController.getSolids(), this::createCurve);
+        this.bicubicWindow = new BicubicWindow((basis, controlPoints16, surfaceType) -> this.solidController.createSurface(basis, controlPoints16, surfaceType));
 
         this.axis = new ArrayList<>();
         this.axis.add(new AxisX());
@@ -90,6 +89,10 @@ public class Controller3D {
 
                     case KeyEvent.VK_C:
                         curveWindow.setVisible(!curveWindow.isVisible());
+                        break;
+
+                    case KeyEvent.VK_B:
+                        bicubicWindow.setVisible(!bicubicWindow.isVisible());
                         break;
 
                     case KeyEvent.VK_W:

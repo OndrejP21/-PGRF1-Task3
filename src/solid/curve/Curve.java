@@ -21,7 +21,7 @@ public class Curve extends Solid {
         this.points = Arrays.stream(points).limit(4).toArray(Point3D[]::new); // 4 body
 
         this.color = new Col(0xff00ff);
-        Cubic cubic = new Cubic(this.getCubicType(), this.points);
+        Cubic cubic = new Cubic(cubicType.getBaseMat(), this.points);
 
         for (int i = 0; i < n; i++) {
             float step = i / (float) n;
@@ -44,21 +44,5 @@ public class Curve extends Solid {
 
     public void setN(int n) {
         this.n = n;
-    }
-
-    public Mat4 getCubicType() {
-        switch (cubicType) {
-            case BEZIER -> {
-                return Cubic.BEZIER;
-            }
-            case COONS -> {
-                return Cubic.COONS;
-            }
-            case FERGUSON -> {
-                return Cubic.FERGUSON;
-            }
-        }
-
-        return Cubic.BEZIER;
     }
 }

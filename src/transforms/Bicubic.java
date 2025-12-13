@@ -1,5 +1,7 @@
 package transforms;
 
+import surface.ComputeSurface;
+
 /**
  * Bicubic approximation surfaces in 3D, immutable
  * 
@@ -7,7 +9,7 @@ package transforms;
  * @version 2016
  */
 
-public class Bicubic {
+public class Bicubic implements ComputeSurface {
 	private final Cubic c1, c2, c3, c4;
 	private final Mat4 baseMat;
 

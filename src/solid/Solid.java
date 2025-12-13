@@ -23,7 +23,7 @@ public class Solid {
     }
 
     protected void generateCurve(Point3D[] points, int n, CubicType type) {
-        this.curveSolidInside = Optional.of(new Curve(points, n, type));
+        this.curveSolidInside = Optional.of(new Curve(Arrays.stream(points).map(x -> x.mul(this.model)).toArray(Point3D[]::new), n, type));
     }
 
     public void generateCurve(int n, CubicType type) {
@@ -79,6 +79,14 @@ public class Solid {
 
     public Col getColor() {
         return color;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setColor(Col color) {
+        this.color = color;
     }
 
     public boolean hasCurveSolidInside() {

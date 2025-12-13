@@ -1,24 +1,23 @@
 package controller;
 
 
+import model.Point;
 import raster.RasterBufferedImage;
 import rasterize.lineRasterizers.LineRasterizer;
 import rasterize.lineRasterizers.LineRasterizerTrivial;
 import render.axis.AxisX;
-import render.Renderer;
 import render.axis.AxisY;
 import render.axis.AxisZ;
-import solid.Arrow;
+import render.data.CubicType;
 import solid.Axis;
-import solid.Curve;
 import solid.Solid;
 import transforms.*;
 import view.ControlsWindow;
+import view.CurveWindow;
 import view.Panel;
 import view.TransformControlsPanel;
 
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.util.*;
 
 public class Controller3D {
@@ -27,8 +26,9 @@ public class Controller3D {
     private LineRasterizer lineRasterizer;
     private SolidController solidController;
     private List<Axis> axis;
-    private Curve curve;
     private ControlsWindow controlsWindow;
+    private CurveWindow curveWindow;
+    private Point lastDrag;
 
     public Controller3D(Panel panel) {
         this.panel = panel;
@@ -37,16 +37,15 @@ public class Controller3D {
         this.solidController = new SolidController(panel, this.lineRasterizer);
 
         this.controlsWindow = new ControlsWindow();
+        this.curveWindow = new CurveWindow(this.solidController.getSolids(), this::createCurve);
 
         this.axis = new ArrayList<>();
         this.axis.add(new AxisX());
         this.axis.add(new AxisY());
         this.axis.add(new AxisZ());
 
-        this.curve = new Curve(10);
-
         initListeners();
-        drawScrene();
+        drawScene();
     }
 
     private void initListeners() {
@@ -89,6 +88,10 @@ public class Controller3D {
                         solidController.changeSelectedIndex();
                         break;
 
+                    case KeyEvent.VK_C:
+                        curveWindow.setVisible(!curveWindow.isVisible());
+                        break;
+
                     case KeyEvent.VK_W:
                         solidController.forwardCamera(0.5);
                         break;
@@ -110,12 +113,45 @@ public class Controller3D {
                         break;
                 }
 
-                drawScrene();
+                drawScene();
+            }
+        });
+
+        panel.addMouseListener(new MouseAdapter() {
+            @Override public void mousePressed(MouseEvent e) {
+                lastDrag = new Point(e.getX(), e.getY());
+            }
+        });
+
+        panel.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override public void mouseDragged(MouseEvent e) {
+                Point p = new Point(e.getX(), e.getY());
+                if (lastDrag == null) {
+                    lastDrag = p;
+                    return;
+                }
+
+                int dx = e.getX() - lastDrag.getX();
+                int dy = e.getY() - lastDrag.getY();
+
+                double sensitivity = 0.0025;
+                solidController.addAzimuth(dx * sensitivity);
+                solidController.addZenith(-dy * sensitivity);
+
+                lastDrag = p;
+                drawScene();
             }
         });
     }
 
-    private void drawScrene() {
+    /** Metoda pro vytvoření křivky uvnitř Solidu */
+    private void createCurve(Solid solid, CubicType type, Integer n) {
+        solid.generateCurve(n, type);
+
+        this.drawScene();
+    }
+
+    private void drawScene() {
         panel.getRaster().clear();
 
         // Dodatečné stringové informace k vykreslení
@@ -125,8 +161,6 @@ public class Controller3D {
 
         for (Axis axis : this.axis)
             this.solidController.renderSolid(axis);
-
-        this.solidController.renderSolid(this.curve);
 
         this.solidController.renderAllSolids();
 

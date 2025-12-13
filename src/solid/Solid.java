@@ -1,5 +1,7 @@
 package solid;
 
+import render.data.CubicType;
+import solid.curve.Curve;
 import transforms.*;
 
 import java.util.*;
@@ -13,9 +15,19 @@ public class Solid {
     /** Jméno solidu */
     protected String name = "";
     protected Mat4 model = new Mat4Identity();
+    /** Určuje, zda má uvnitř sebe vykreslenou nějakou křivku (podle zadání úkolu uvnitř tvaru) */
+    private Optional<Curve> curveSolidInside = Optional.empty();
 
     protected void addIndices(Integer... indices) {
         this.ib.addAll(Arrays.asList(indices));
+    }
+
+    protected void generateCurve(Point3D[] points, int n, CubicType type) {
+        this.curveSolidInside = Optional.of(new Curve(points, n, type));
+    }
+
+    public void generateCurve(int n, CubicType type) {
+        throw new UnsupportedOperationException("Metoda generateCurve() není implementována.");
     }
 
     /** Metoda, která spočítá prostřední bod tvaru, kolem kterého bude docházet k rotacím */
@@ -29,14 +41,24 @@ public class Solid {
 
     public void mulSolid(Mat4 mat) {
         this.model = this.model.mul(mat);
+
+        // Pokud existuje křivka uvnitř, změníme i tu
+        if (this.hasCurveSolidInside())
+            this.curveSolidInside.get().mulSolid(mat);
     }
 
     /** Posune tvar do počátku a zrotuje o úhel*/
-    public void rotateSolid(double angle) {
-        Point3D centerPoint = this.getCenterPoint();
-        this.mulSolid(new Mat4Transl(centerPoint.mul(-1)));
-        this.mulSolid(new Mat4RotZ(Math.toRadians(angle)));
-        this.mulSolid(new Mat4Transl(centerPoint));
+    public void rotateSolid(double angleDeg) {
+        Point3D c = getCenterPoint();
+        Mat4 spin = new Mat4Transl(c.mul(-1))
+                .mul(new Mat4RotZ(Math.toRadians(angleDeg))
+                .mul(new Mat4Transl(c)));
+
+        this.model = spin.mul(this.model);
+
+        // Pokud existuje křivka uvnitř, orotujeme i tu
+        if (this.hasCurveSolidInside())
+            this.curveSolidInside.get().rotateSolid(angleDeg);
     }
 
     public String getName() {
@@ -55,11 +77,15 @@ public class Solid {
         return model;
     }
 
-    public void setModel(Mat4 model) {
-        this.model = model;
-    }
-
     public Col getColor() {
         return color;
+    }
+
+    public boolean hasCurveSolidInside() {
+        return this.curveSolidInside.isPresent();
+    }
+
+    public Optional<Curve> getCurveSolidInside() {
+        return this.curveSolidInside;
     }
 }

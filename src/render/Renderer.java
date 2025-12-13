@@ -34,6 +34,11 @@ public class Renderer {
         for (Point3D p : vb) {
             Point3D v = p.mul(mvp);
 
+            // Ořezání v homogenních souřadnicích
+            if (!checkSlice(v)) {
+                return; // celý útvar pryč
+            }
+
             transformedVb.add(v);
         }
 
@@ -56,8 +61,6 @@ public class Renderer {
             // Projekční transformace
             pointA = pointA.mul(this.projectMat);
             pointB = pointB.mul(this.projectMat);*/
-
-            // TODO: Ořezání - slide 88
 
             // Dehomogenizace
             pointA = getDehomogedOrDefault(pointA);
@@ -89,6 +92,8 @@ public class Renderer {
     public void renderSolid(List<Solid> solids) {
         for (Solid s : solids) {
             this.renderSolid(s);
+            if (s.hasCurveSolidInside())
+                this.renderSolid(s.getCurveSolidInside().get());
         }
     }
 

@@ -3,10 +3,7 @@ package controller;
 import rasterize.lineRasterizers.LineRasterizer;
 import render.Renderer;
 import render.data.ProjectionType;
-import solid.Arrow;
-import solid.Cube;
-import solid.Cylinder;
-import solid.Solid;
+import solid.*;
 import transforms.*;
 import view.Panel;
 
@@ -43,9 +40,10 @@ public class SolidController {
 
         this.renderer = new Renderer(this.lineRasterizer, this.panel.getWidth(), this.panel.getHeight(), this.camera.getViewMatrix(), this.getProjMat());
 
-        this.solids.add(new Arrow());
         this.solids.add(new Cube());
         this.solids.add(new Cylinder(16));
+        this.solids.add(new Tetrahedron());
+        this.solids.add(new StarCylinder());
     }
 
     /** Vyrenderuje všechny aktuální solidy */
@@ -105,5 +103,13 @@ public class SolidController {
 
     public void rightCamera(double d) {
         this.camera = this.camera.right(d);
+    }
+
+    public void addAzimuth(double d) { this.camera = camera.addAzimuth(d); }
+    public void addZenith(double d)  { this.camera = camera.addZenith(d);  }
+
+    /** Vytvoříme nový list, aby nebylo možné zasahovat do původního zvenku */
+    public List<Solid> getSolids() {
+        return new ArrayList<>(solids);
     }
 }

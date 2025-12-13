@@ -1,5 +1,6 @@
 package solid;
 
+import render.data.CubicType;
 import transforms.Col;
 import transforms.Point3D;
 
@@ -18,7 +19,7 @@ public class Cube extends Solid {
         for (int i = 0; i < 4; i++) {
             Point3D point = this.vb.get(i);
 
-            this.vb.add(point.add(new Point3D(0,0, 0.5)));
+            this.vb.add(point.add(new Point3D(0,0, 0.5, 0)));
             // Propojení mezi zadní a přední stěnou
             this.addIndices(i, 4 + i);
         }
@@ -28,5 +29,21 @@ public class Cube extends Solid {
 
         this.color = new Col(0xff0000);
         this.name = "Krychle";
+
+        // Vnitřní solid
+
+    }
+
+    /** Metoda volící vhodné 4 body pro vygenerování křivky uvnitř tvaru, předávající do rodičovské třídy Solid */
+    @Override
+    public void generateCurve(int n, CubicType type) {
+        Point3D[] pts = {
+                vb.get(0),
+                vb.get(3),
+                vb.get(4),
+                vb.get(7)
+        };
+
+        super.generateCurve(pts, n, type);
     }
 }

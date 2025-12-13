@@ -9,8 +9,11 @@ import render.axis.AxisX;
 import render.axis.AxisY;
 import render.axis.AxisZ;
 import render.data.CubicType;
+import render.data.SurfaceType;
 import solid.Axis;
 import solid.Solid;
+import solid.surface.SurfaceSolid;
+import surface.ComputeSurface;
 import transforms.*;
 import view.*;
 
@@ -36,7 +39,7 @@ public class Controller3D {
 
         this.controlsWindow = new ControlsWindow();
         this.curveWindow = new CurveWindow(this.solidController.getSolids(), this::createCurve);
-        this.bicubicWindow = new BicubicWindow((basis, controlPoints16, surfaceType) -> this.solidController.createSurface(basis, controlPoints16, surfaceType));
+        this.bicubicWindow = new BicubicWindow(this::createSurface);
 
         this.axis = new ArrayList<>();
         this.axis.add(new AxisX());
@@ -76,7 +79,7 @@ public class Controller3D {
                         break;
 
                     case KeyEvent.VK_X:
-                        selectedSolid.mulSolid(new Mat4Scale(controls.getScaleX(), controls.getScaleY(), controls.getScaleZ()));
+                        selectedSolid.scaleSolid(new Vec3D(controls.getScaleX(), controls.getScaleY(), controls.getScaleZ()));
                         break;
 
                     case KeyEvent.VK_P:
@@ -150,7 +153,12 @@ public class Controller3D {
     /** Metoda pro vytvoření křivky uvnitř Solidu */
     private void createCurve(Solid solid, CubicType type, Integer n) {
         solid.generateCurve(n, type);
+        this.drawScene();
+    }
 
+    /** Metoda pro vytvoření surfacu */
+    public void createSurface(CubicType type, Point3D[] points, SurfaceType surfaceType) {
+        this.solidController.createSurface(type, points, surfaceType);
         this.drawScene();
     }
 

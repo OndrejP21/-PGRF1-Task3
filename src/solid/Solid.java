@@ -47,14 +47,25 @@ public class Solid {
             this.curveSolidInside.get().mulSolid(mat);
     }
 
-    /** Posune tvar do počátku a zrotuje o úhel*/
-    public void rotateSolid(double angleDeg) {
+    /** Metoda, která vykoná operaci vzhledem k posunutí solidu do počátku, poté ho posune zpět (pro škálování a rotaci) */
+    private void mulWithCenterPosition(Mat4 mat4) {
         Point3D c = getCenterPoint();
-        Mat4 spin = new Mat4Transl(c.mul(-1))
-                .mul(new Mat4RotZ(Math.toRadians(angleDeg))
-                .mul(new Mat4Transl(c)));
+        Mat4 spin = new Mat4Transl(c.mul(-1)).mul(mat4).mul(new Mat4Transl(c));
 
         this.model = spin.mul(this.model);
+    }
+
+    public void scaleSolid(Vec3D vec) {
+        this.mulWithCenterPosition(new Mat4Scale(vec.getX(), vec.getY(), vec.getZ()));
+
+        // Pokud existuje křivka uvnitř, škálujeme i tu
+        if (this.hasCurveSolidInside())
+            this.curveSolidInside.get().scaleSolid(vec);
+    }
+
+    /** Posune tvar do počátku a zrotuje o úhel*/
+    public void rotateSolid(double angleDeg) {
+        this.mulWithCenterPosition(new Mat4RotZ(Math.toRadians(angleDeg)));
 
         // Pokud existuje křivka uvnitř, orotujeme i tu
         if (this.hasCurveSolidInside())
